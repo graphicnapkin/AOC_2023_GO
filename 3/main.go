@@ -8,44 +8,106 @@ import (
 )
 
 func main() {
-	data, _ := os.ReadFile("test_input.txt")
+	data, _ := os.ReadFile("input.txt")
 	input := string(data)
 	fmt.Println("Solution: ", solution(input))
 }
 
 func solution(input string) int {
+	inputRows := strings.Split(input, "\n")
+	parts := make([]PartNumber, 0)
 
-	for _, row := range strings.Split(input, "\n") {
-		for i := 0; i < len(row); i++ {
-			char := row[i]
-			numbbersInRow := make([]int, 0)
+	sum := 0
+
+	for y, row := range inputRows{
+		for x := 0; x < len(row); x++ {
+			char := row[x]
 			if char >= '0' && char <= '9' {
+				numStart := []int{x,y}
 				var currentNumber = string(char)
-				nextIndex := i + 1
+				nextIndex := x + 1
 				stop := nextIndex >= len(row)
 
 				for !stop {
+					if nextIndex >= len(row) {
+						stop = true
+						break
+					}
+
 					if row[nextIndex] >= '0' && row[nextIndex] <= '9' {
 						currentNumber += string(row[nextIndex])
 						nextIndex++
 					} else {
-						i = nextIndex
+						x = nextIndex
 						stop = true
 					}
 				}
 
-				num, _ := strconv.Atoi(currentNumber)
-				numbbersInRow = append(numbbersInRow, num)
-				fmt.Println(numbbersInRow)
+				value, _ := strconv.Atoi(currentNumber)
+				numStop := []int{nextIndex -1, y}
+
+				potentialPart := PartNumber{
+					value: value,
+					start: numStart,
+					stop: numStop,
+				}
+
+				valid := checkForValidNumber(potentialPart, inputRows)
+				if valid {
+					parts = append(parts, potentialPart)
+					sum += value
+				}
+
+				if !valid {
+					fmt.Println("Invalid part: ", potentialPart)
+				}
 			}
 		}
 
 	}
 
-	return 0
+	return sum
 }
-func checkForValidNumber(startLocation []int, stopLocation []int) bool {
+
+func checkPosition(x int, y int, grid []string) bool {
+	if x < 0 { return false }
+	if y < 0 { return false }
+	if x >= len(grid[0]) { return false }
+	if y >= len(grid) { return false }
+
+	char := grid[y][x]
+	return !(char >= '0' && char <= '9') && char != '.'
+}
+
+func checkForValidNumber(partNumber PartNumber, grid []string) bool {
+	startX := partNumber.start[0]
+	startY := partNumber.start[1]
+	stopX := partNumber.stop[0]
+	stopY := partNumber.stop[1]
+
+	// check adjacent positions to the left of the starting point
+	if checkPosition(startX - 1, startY, grid) { return true }
+	if checkPosition(startX -	1, startY + 1, grid) { return true }
+	if checkPosition(startX - 1, startY - 1, grid) { return true }
+
+	// check adjacent positions to the right of the ending point
+	if checkPosition(stopX + 1, stopY, grid) { return true }
+	if checkPosition(stopX + 1, stopY + 1, grid) { return true }
+	if checkPosition(stopX + 1, stopY - 1, grid) { return true }
+
+	// check positions direclty above and below all positions bewteen start and stop
+	for x := startX; x <= stopX; x++ {
+		if checkPosition(x, startY - 1, grid) { return true }
+		if checkPosition(x, stopY + 1, grid) { return true }
+	}
+
 	return false
+}
+
+type PartNumber struct {
+	value int
+	start []int
+	stop  []int
 }
 
 // Instructions: --- Day 3: Gear Ratios ---
