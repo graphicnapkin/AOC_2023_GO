@@ -8,11 +8,9 @@ import (
 )
 
 func main() {
-	//testPart1()
-	//testPart2()
 	data, _ := os.ReadFile("input.txt")
 	input := string(data)
-	fmt.Println("solution", solution(input))
+	fmt.Println("Solution: ", solution(input))
 }
 
 func solution(input string) int {
@@ -20,82 +18,60 @@ func solution(input string) int {
 	inputRows := strings.Split(input, "\n")
 
 	for _, row := range inputRows {
-		var rowNumbers []string
-		var spelledOutNumbers = make([]string, len(row))
-
-		for i, number := range []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"} {
-			index := strings.Index(row, number)
-			if index == -1 {
-				continue
-			}
-
-			spelledOutNumbers[index] = string(i + '1')
-
-			lastIndex := strings.LastIndex(row, number)
-			if lastIndex == index {
-				continue
-			}
-
-			spelledOutNumbers[lastIndex] = string(i + '1')
-		}
+		var rowNumbers string
+		spelledOutNumbers := extractSpelledOutNumbers(row)
 
 		for i, char := range row {
 			// if character is a number
 			if char >= '0' && char <= '9' {
-				rowNumbers = append(rowNumbers, string(char))
-				// if we found a spelled out number at this index
-			} else if spelledOutNumbers[i] != "" {
-				rowNumbers = append(rowNumbers, spelledOutNumbers[i])
+				rowNumbers = string(char)
+				break
+			}
+			// if we found a spelled out number at this index
+			if spelledOutNumbers[i] != "" {
+				rowNumbers = spelledOutNumbers[i]
+				break
 			}
 		}
 
-		if len(rowNumbers) == 0 {
-			continue
+		for i := len(row) - 1; i >= 0; i-- {
+			// if character is a number
+			if row[i] >= '0' && row[i] <= '9' {
+				rowNumbers += string(row[i])
+				break
+			}
+
+			// if we found a spelled out number at this index
+			if spelledOutNumbers[i] != "" {
+				rowNumbers += string(spelledOutNumbers[i])
+				break
+			}
 		}
 
-		if len(rowNumbers) == 1 {
-			v, _ := strconv.Atoi(rowNumbers[0])
-			sum += v * 2
-			continue
-		}
-		num, _ := strconv.Atoi(rowNumbers[0] + rowNumbers[len(rowNumbers)-1])
+		num, _ := strconv.Atoi(rowNumbers)
 
 		sum += num
-		fmt.Println(rowNumbers, spelledOutNumbers, sum)
 	}
 	return sum
 }
 
-func testPart1() {
-	testInput := `1abc2
-pqr3stu8vwx
-a1b2c3d4e5f
-treb7uchet`
+func extractSpelledOutNumbers(row string) []string {
+	var spelledOutNumbers = make([]string, len(row))
 
-	expectedOutput := 142
-	actualOutput := solution(testInput)
+	for i, number := range []string{"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"} {
+		index := strings.Index(row, number)
+		if index == -1 {
+			continue
+		}
 
-	if expectedOutput != actualOutput {
-		fmt.Println("Failed expected", expectedOutput, "got", actualOutput)
-	} else {
-		fmt.Println("Passed", actualOutput)
+		spelledOutNumbers[index] = strconv.Itoa(i + 1)
+
+		lastIndex := strings.LastIndex(row, number)
+		if lastIndex == index {
+			continue
+		}
+
+		spelledOutNumbers[lastIndex] = strconv.Itoa(i + 1)
 	}
-}
-
-func testPart2() {
-	testInput := `two1nine
-eightwothree
-abcone2threexyz
-xtwone3four
-4nineeightseven2
-zoneight234
-7pqrstsixteen`
-	expectedOutput := 281
-	actualOutput := solution(testInput)
-
-	if expectedOutput != actualOutput {
-		fmt.Println("Failed expected", expectedOutput, "got", actualOutput)
-	} else {
-		fmt.Println("Passed", actualOutput)
-	}
+	return spelledOutNumbers
 }
