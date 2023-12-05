@@ -12,23 +12,26 @@ func TestSolution(t *testing.T) {
 	tests := []struct {
 		name           string
 		input          string
+		function 		 func(string) int
 		expectedOutput int
 	}{
 		{
 			name:           "Part 1",
 			input:          testInput,
+			function: 		 solution,
 			expectedOutput: 13,
 		},
 		{
 			name:           "Part 2",
 			input:          testInput,
-			expectedOutput: 13,
+			function: 		 solutionPart2,
+			expectedOutput: 30,
 		},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			actualOutput := solution(test.input)
+			actualOutput := test.function(test.input)
 			if actualOutput != test.expectedOutput {
 				t.Errorf("Failed: expected %d, got %d", test.expectedOutput, actualOutput)
 			}
