@@ -14,15 +14,15 @@ func TestSolution(t *testing.T) {
 		input          string
 		expectedOutput int
 	}{
-		{
-			name:           "Part 1",
-			input:          testInput,
-			expectedOutput: 0,
-		},
+		// {
+		// 	name:           "Part 1",
+		// 	input:          testInput,
+		// 	expectedOutput: 4361,
+		// },
 		{
 			name:           "Part 2",
 			input:          testInput,
-			expectedOutput: 0,
+			expectedOutput: 467835,
 		},
 	}
 

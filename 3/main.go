@@ -13,17 +13,21 @@ func main() {
 	fmt.Println("Solution: ", solution(input))
 }
 
+type Gear struct {
+	connectedParts []PartNumber
+}
+
 func solution(input string) int {
 	inputRows := strings.Split(input, "\n")
-	parts := make([]PartNumber, 0)
+	gears := map[string]Gear{}
 
 	sum := 0
 
-	for y, row := range inputRows{
+	for y, row := range inputRows {
 		for x := 0; x < len(row); x++ {
 			char := row[x]
 			if char >= '0' && char <= '9' {
-				numStart := []int{x,y}
+				numStart := []int{x, y}
 				var currentNumber = string(char)
 				nextIndex := x + 1
 				stop := nextIndex >= len(row)
@@ -44,64 +48,115 @@ func solution(input string) int {
 				}
 
 				value, _ := strconv.Atoi(currentNumber)
-				numStop := []int{nextIndex -1, y}
+				numStop := []int{nextIndex - 1, y}
 
 				potentialPart := PartNumber{
 					value: value,
 					start: numStart,
-					stop: numStop,
+					stop:  numStop,
 				}
 
-				valid := checkForValidNumber(potentialPart, inputRows)
+				valid, gearLocation := checkForValidNumber(potentialPart, inputRows)
 				if valid {
-					parts = append(parts, potentialPart)
-					sum += value
-				}
+					if len(gearLocation) == 0 {
+						continue
+					}
+					coordinates := strconv.Itoa(gearLocation[0]) + "," + strconv.Itoa(gearLocation[1])
 
-				if !valid {
-					fmt.Println("Invalid part: ", potentialPart)
+					if gear, ok := gears[coordinates]; ok {
+						gear.connectedParts = append(gear.connectedParts, potentialPart)
+						gears[coordinates] = gear
+					} else {
+						gear := Gear{
+							connectedParts: []PartNumber{potentialPart},
+						}
+						gears[coordinates] = gear
+					}
 				}
 			}
 		}
 
 	}
 
+	for _, gear := range gears {
+		gearRatio := 1
+		if len(gear.connectedParts) < 2 {
+			continue
+		}
+		for _, part := range gear.connectedParts {
+			gearRatio *= part.value
+		}
+		sum += gearRatio
+	}
+
 	return sum
 }
 
-func checkPosition(x int, y int, grid []string) bool {
-	if x < 0 { return false }
-	if y < 0 { return false }
-	if x >= len(grid[0]) { return false }
-	if y >= len(grid) { return false }
+func checkPosition(x int, y int, grid []string) (bool, []int) {
+	if x < 0 || y < 0 || x >= len(grid[0]) || y >= len(grid) {
+		return false, []int{}
+	}
 
 	char := grid[y][x]
-	return !(char >= '0' && char <= '9') && char != '.'
+	if char == '*' {
+		return true, []int{x, y}
+	}
+
+	return !(char >= '0' && char <= '9') && char != '.', []int{}
 }
 
-func checkForValidNumber(partNumber PartNumber, grid []string) bool {
+func checkForValidNumber(partNumber PartNumber, grid []string) (bool, []int) {
 	startX := partNumber.start[0]
 	startY := partNumber.start[1]
 	stopX := partNumber.stop[0]
 	stopY := partNumber.stop[1]
 
 	// check adjacent positions to the left of the starting point
-	if checkPosition(startX - 1, startY, grid) { return true }
-	if checkPosition(startX -	1, startY + 1, grid) { return true }
-	if checkPosition(startX - 1, startY - 1, grid) { return true }
+	left, gearLocation := checkPosition(startX-1, startY, grid)
+	if left {
+		return true, gearLocation
+	}
+
+	upperLeft, geargearLocation := checkPosition(startX-1, startY+1, grid)
+	if upperLeft {
+		return true, geargearLocation
+	}
+
+	lowerLeft, geargearLocation := checkPosition(startX-1, startY-1, grid)
+	if lowerLeft {
+		return true, geargearLocation
+	}
 
 	// check adjacent positions to the right of the ending point
-	if checkPosition(stopX + 1, stopY, grid) { return true }
-	if checkPosition(stopX + 1, stopY + 1, grid) { return true }
-	if checkPosition(stopX + 1, stopY - 1, grid) { return true }
+	right, geargearLocation := checkPosition(stopX+1, stopY, grid)
+	if right {
+		return true, geargearLocation
+	}
+
+	upperRight, geargearLocation := checkPosition(stopX+1, stopY+1, grid)
+	if upperRight {
+		return true, geargearLocation
+	}
+
+	lowerRight, geargearLocation := checkPosition(stopX+1, stopY-1, grid)
+	if lowerRight {
+		return true, geargearLocation
+	}
 
 	// check positions direclty above and below all positions bewteen start and stop
 	for x := startX; x <= stopX; x++ {
-		if checkPosition(x, startY - 1, grid) { return true }
-		if checkPosition(x, stopY + 1, grid) { return true }
+		up, geargearLocation := checkPosition(x, startY+1, grid)
+		if up {
+			return true, geargearLocation
+		}
+
+		down, geargearLocation := checkPosition(x, startY-1, grid)
+		if down {
+			return true, geargearLocation
+		}
 	}
 
-	return false
+	return false, []int{}
 }
 
 type PartNumber struct {
@@ -109,32 +164,3 @@ type PartNumber struct {
 	start []int
 	stop  []int
 }
-
-// Instructions: --- Day 3: Gear Ratios ---
-// You and the Elf eventually reach a gondola lift station; he says the gondola lift will take you up to the water source, but this is as far as he can bring you. You go inside.
-
-// It doesn't take long to find the gondolas, but there seems to be a problem: they're not moving.
-
-// "Aaah!"
-
-// You turn around to see a slightly-greasy Elf with a wrench and a look of surprise. "Sorry, I wasn't expecting anyone! The gondola lift isn't working right now; it'll still be a while before I can fix it." You offer to help.
-
-// The engineer explains that an engine part seems to be missing from the engine, but nobody can figure out which one. If you can add up all the part numbers in the engine schematic, it should be easy to work out which part is missing.
-
-// The engine schematic (your puzzle input) consists of a visual representation of the engine. There are lots of numbers and symbols you don't really understand, but apparently any number adjacent to a symbol, even diagonally, is a "part number" and should be included in your sum. (Periods (.) do not count as a symbol.)
-
-// Here is an example engine schematic:
-
-// 467..114..
-// ...*......
-// ..35..633.
-// ......#...
-// 617*......
-// .....+.58.
-// ..592.....
-// ......755.
-// ...$.*....
-// .664.598..
-// In this schematic, two numbers are not part numbers because they are not adjacent to a symbol: 114 (top right) and 58 (middle right). Every other number is adjacent to a symbol and so is a part number; their sum is 4361.
-
-// Of course, the actual engine schematic is much larger. What is the sum of all of the part numbers in the engine schematic?
