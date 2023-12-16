@@ -18,13 +18,13 @@ func TestSolution(t *testing.T) {
 		{
 			name:           "Part 1",
 			input:          testInput,
-			expectedOutput: 0,
-			function: 		 solutionPart1,
+			expectedOutput: 288,
+			function: 		 solution,
 		},
 		{
 			name:           "Part 2",
 			input:          testInput,
-			expectedOutput: 0,
+			expectedOutput: 71503,
 			function : 		 solutionPart2,
 		},
 	}
